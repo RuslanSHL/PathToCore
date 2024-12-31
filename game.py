@@ -1,48 +1,38 @@
 import pygame
 import os
-from build import Build
-from player import Player
 
 
 class Game:
     def __init__(self, caption, width, height):
-        self.width, self.height = self.size = width, height
         pygame.init()
         pygame.display.set_caption(caption)
         # Экран
+        self.width, self.height = self.size = width, height
         self.screen = pygame.display.set_mode(self.size)
         # Спрайты
         self.all_sprites = pygame.sprite.Group()
         self.building_group = pygame.sprite.Group()
         self.collibe_building_group = pygame.sprite.Group()
-
-        self.life = pygame.sprite.Group()
-        self.wall = pygame.sprite.Group()
+        # Объекты
         self.floor = pygame.sprite.Group()
+        self.wall = pygame.sprite.Group()
         self.item = pygame.sprite.Group()
+        self.life = pygame.sprite.Group()
         self.ui = []
         # Игровое время
         self.clock = pygame.time.Clock()
         self.fps = 60
-        self.tps = 60  # Тики не могут быть медленее fps
+        self.tps = 60
         self.ticks = 0
 
-        self.time_events = {}
-
-        self.building = []
 
     def run(self):
         """Главный цикл"""
         self.running = True
-        time_fps = 0
+        _time_fps = 0
         while self.running:
-            time = self.clock.tick(self.tps)
-            self.ticks += 1
-            # обработка time events
-            for t, c in self.time_events.copy().items():
-                if t == self.ticks:
-                    c()
-                    del self.time_events[t]
+            time = self.clock.tick(max(self.fps, self.tps))
+            self.tick = time / 1000 * self.tps
             # обработка событий pygame
             for event in pygame.event.get():
                 if self.phase.event_handling(event):
@@ -68,9 +58,9 @@ class Game:
                             self.player.direction_y -= 1
             self.all_sprites.update()
 
-            time_fps += time
-            if time_fps > 1000 / self.fps:
-                time_fps %= 1000 / self.fps
+            _time_fps += time
+            if _time_fps > 1000 / self.fps:
+                _time_fps %= 1000 / self.fps
                 self.screen.fill((255, 255, 255))
                 self.floor.draw(self.screen)
                 self.wall.draw(self.screen)
@@ -81,16 +71,13 @@ class Game:
                 pygame.display.flip()
         self.quit()
 
-    def wait(self, ticks, command):
-        self.time_events[self.ticks + ticks] = command
-
     def set_phase(self, phase):
         self.phase = phase
 
     def load_image(self, name, colorkey=None):
-        fullname = os.path.join('data', name)
+        fullname = os.path.join("data", name)
         if not os.path.isfile(fullname):
-            print('Unknown image:', name)
+            print("Unknown image:", name)
             self.quit()
         image = pygame.image.load(fullname)
         if colorkey is not None:
@@ -104,13 +91,13 @@ class Game:
 
     def quit(self):
         """Выход"""
-        print('bye!')
+        print("bye!")
         pygame.quit()
 
 
-
-if __name__ == '__main__':
-    core = Game('PathToCore', 500, 500)
+if __name__ == "__main__":
+    core = Game("PathToCore", 500, 500)
     from Phase1 import Phase
+
     core.set_phase(Phase(core))
     core.run()

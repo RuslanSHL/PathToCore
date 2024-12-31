@@ -12,8 +12,12 @@ class InteractText:
 
     def draw(self, screen):
         self.x, self.y = self.obj.rect.x, self.obj.rect.y
-        for i, text in enumerate(self.text.split('\n')):
+        lines = self.text.split("\n")
+        for i, text in enumerate(lines):
             s = self.font.render(text, False, self.color)
             w, h = s.get_size()
-            screen.blit(s, (self.x - (w - self.obj.rect.width) / 2, self.y + h * i - h))
-
+            screen.blit(
+                    s,
+                    (self.x - (w - self.obj.rect.width) / 2,
+                     self.y + h * i - h * len(lines))
+            )
