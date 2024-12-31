@@ -28,7 +28,10 @@ class Player(pygame.sprite.Sprite):
         self.animated = False
 
         self.text = InteractText(
-            x, y, "press\n e \nto interact", (0, 0, 0), "arial", 20, self
+            (game.width - width) / 2,
+            (game.height - height) / 2,
+            "press\ne\nto interact",
+            (0, 0, 0), "arial", 20
         )
 
     def set_animation(self, col, row, width, height, fpt):

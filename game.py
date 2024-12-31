@@ -9,6 +9,10 @@ class Game:
         # Экран
         self.width, self.height = self.size = width, height
         self.screen = pygame.display.set_mode(self.size)
+        self.game_surface = pygame.Surface(self.size)
+        # Камера
+        self.camera_x = 0
+        self.camera_y = 0
         # Спрайты
         self.all_sprites = pygame.sprite.Group()
         self.building_group = pygame.sprite.Group()
@@ -57,15 +61,18 @@ class Game:
                         elif event.key in (pygame.K_DOWN, pygame.K_s):
                             self.player.direction_y -= 1
             self.all_sprites.update()
+            self.phase.update()
 
             _time_fps += time
             if _time_fps > 1000 / self.fps:
                 _time_fps %= 1000 / self.fps
                 self.screen.fill((255, 255, 255))
-                self.floor.draw(self.screen)
-                self.wall.draw(self.screen)
-                self.item.draw(self.screen)
-                self.life.draw(self.screen)
+                self.game_surface.fill((255, 255, 255))
+                self.floor.draw(self.game_surface)
+                self.wall.draw(self.game_surface)
+                self.item.draw(self.game_surface)
+                self.life.draw(self.game_surface)
+                self.screen.blit(self.game_surface, (self.camera_x, self.camera_y))
                 for i in self.ui:
                     i.draw(self.screen)
                 pygame.display.flip()

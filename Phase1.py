@@ -21,3 +21,7 @@ class Phase:
                 if self.game.player.interact:
                     self.game.player.interact.interact()
         return True
+
+    def update(self):
+        self.game.camera_x = self.game.width / 2 - self.game.player.rect.centerx
+        self.game.camera_y = self.game.height / 2 - self.game.player.rect.centery
