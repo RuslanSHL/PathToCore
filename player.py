@@ -1,14 +1,19 @@
 import pygame
+from ui import InteractText
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, game):
+    def __init__(self, game, texture, x, y, width, height):
         super().__init__(game.all_sprites)
         self.add(game.life)
+        self.texture = texture
+        self.width = width
+        self.height = height
         self.game = game
-        self.image = pygame.Surface([10, 10])
-        self.image.fill((255, 255, 255))
-        self.rect = pygame.Rect(0, 0, 10, 10)
+        self.image = game.load_image(texture)
+        self.image = pygame.transform.scale(self.image, (width, height))
+        self.rect = pygame.Rect(x, y, width, height)
+
         self.direction_x = 0
         self.direction_y = 0
         self.speed_x = 0
@@ -16,8 +21,37 @@ class Player(pygame.sprite.Sprite):
         self.is_walk = False
         self.walk_speed = 3
         self.interact = None
+        self._last_interact = None
+        self.animated = False
+
+        self.text = InteractText(x, y, 'press e to interact', (0, 0, 0), 'arial', 20, self)
+
+    def set_animation(self, col, row,  width, height, fpf):
+        self.fpf = fpf
+        self.animated = True
+        self.current_frame = 0
+        self.current_f = 0
+        self.frames = []
+        image = self.game.load_image(self.texture)
+        for r in range(row):
+            for c in range(col):
+                frame = pygame.Rect(c * width, r * height, width, height)
+                self.frames.append(image.subsurface(frame))
+        self.image = self.frames[0]
+        self.image = pygame.transform.scale(self.image, (self.width, self.height))
 
     def update(self):
+        if self.animated:
+            self.current_f += 1
+            if self.game.fps / self.fpf == self.current_f:
+                self.current_f = 0
+                if self.direction_x or self.direction_y:
+                    self.current_frame  = (self.current_frame + 1) % len(self.frames)
+                    self.image = self.frames[self.current_frame]
+                    self.image = pygame.transform.scale(self.image, (self.width, self.height))
+                else:
+                    self.image = self.frames[0]
+                    self.image = pygame.transform.scale(self.image, (self.width, self.height))
         # FIXME: персонаж вверх влево идёт медленно
         # перемещение
         if self.direction_x and self.direction_y:
@@ -53,8 +87,12 @@ class Player(pygame.sprite.Sprite):
         for item in self.game.item:
             if self.rect.colliderect(item.interact_rect):
                 if self.interact is None:
-                    print('press e to interact')
                     self.interact = item
+                    self.game.ui.append(self.text)
+                    print(self.game.ui)
                 break
         else:
-            self.interact = None
+            if self.interact is not None:
+                self.interact = None
+                self.game.ui.remove(self.text)
+

@@ -1,4 +1,5 @@
 import pygame
+import os
 from build import Build
 from player import Player
 
@@ -19,6 +20,7 @@ class Game:
         self.wall = pygame.sprite.Group()
         self.floor = pygame.sprite.Group()
         self.item = pygame.sprite.Group()
+        self.ui = []
         # Игровое время
         self.clock = pygame.time.Clock()
         self.fps = 60
@@ -27,7 +29,6 @@ class Game:
 
         self.time_events = {}
 
-        self.player = Player(self)
         self.building = []
 
     def run(self):
@@ -70,11 +71,13 @@ class Game:
             time_fps += time
             if time_fps > 1000 / self.fps:
                 time_fps %= 1000 / self.fps
-                self.screen.fill((0, 0, 0))
+                self.screen.fill((255, 255, 255))
                 self.floor.draw(self.screen)
                 self.wall.draw(self.screen)
                 self.item.draw(self.screen)
                 self.life.draw(self.screen)
+                for i in self.ui:
+                    i.draw(self.screen)
                 pygame.display.flip()
         self.quit()
 
@@ -83,6 +86,21 @@ class Game:
 
     def set_phase(self, phase):
         self.phase = phase
+
+    def load_image(self, name, colorkey=None):
+        fullname = os.path.join('data', name)
+        if not os.path.isfile(fullname):
+            print('Unknown image:', name)
+            self.quit()
+        image = pygame.image.load(fullname)
+        if colorkey is not None:
+            image = image.convert()
+            if colorkey == -1:
+                colorkey = image.get_at((0, 0))
+            image.set_colorkey(colorkey)
+        else:
+            image = image.convert_alpha()
+        return image
 
     def quit(self):
         """Выход"""

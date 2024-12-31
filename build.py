@@ -2,14 +2,18 @@ import pygame
 
 
 class Build(pygame.sprite.Sprite):
-    def __init__(self, game, color, x, y, width, height, collibe):
+    def __init__(self, game, texture, x, y, width, height, collibe):
         super().__init__(game.all_sprites)
         self.game = game
         self.add(game.building_group)
         if collibe:
             self.add(game.collibe_building_group)
-        self.image = pygame.Surface((width, height))
-        self.image.fill(color)
+        if type(texture) is str:
+            self.image = game.load_image(texture)
+            self.image = pygame.transform.scale(self.image, (width, height))
+        else:
+            self.image = pygame.Surface((width, height))
+            self.image.fill(texture)
         self.rect = pygame.Rect(x, y, width, height)
 
     def update(self):
