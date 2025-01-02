@@ -3,7 +3,21 @@ from build import Wall, Floor, Item
 from player import Player
 
 
-class Phase:
+class _Phase:
+    def __init__(self, game):
+        self.game = game
+
+    def event_handling(self, event):
+        return True
+
+    def update(self):
+        pass
+
+    def update_size(self):
+        pass
+
+
+class Phase(_Phase):
     def __init__(self, game):
         self.game = game
         print('start phase 1')
@@ -23,5 +37,8 @@ class Phase:
         return True
 
     def update(self):
-        self.game.camera_x = self.game.width / 2 - self.game.player.rect.centerx
-        self.game.camera_y = self.game.height / 2 - self.game.player.rect.centery
+        self.game.camera_x = (self.game.width / 2 - self.game.player.rect.centerx * self.game.camera_scale)
+        self.game.camera_y = (self.game.height / 2 - self.game.player.rect.centery * self.game.camera_scale)
+
+    def update_size(self):
+        self.game.player.update_size()

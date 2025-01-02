@@ -2,7 +2,8 @@ import pygame
 
 
 class InteractText:
-    def __init__(self, x, y, text, color, font, size):
+    def __init__(self, game, x, y, text, color, font, size):
+        self.game = game
         self.font = pygame.font.SysFont(font, size)
         self.text = text
         self.x = x
@@ -14,4 +15,6 @@ class InteractText:
         for i, text in enumerate(lines):
             s = self.font.render(text, False, self.color)
             w, h = s.get_size()
-            screen.blit(s, (self.x, self.y - h * (len(lines) - i)))
+            screen.blit(s, (self.x,
+                            self.y - h * (len(lines) - i)))
+

@@ -28,6 +28,7 @@ class Player(pygame.sprite.Sprite):
         self.animated = False
 
         self.text = InteractText(
+            game,
             (game.width - width) / 2,
             (game.height - height) / 2,
             "press\ne\nto interact",
@@ -66,40 +67,41 @@ class Player(pygame.sprite.Sprite):
                     self.current_frame = 0
         # FIXME: персонаж вверх влево идёт медленно
         # перемещение
-        if self.direction_x and self.direction_y:
-            walk_speed_x = self.walk_speed / 2 * self.direction_x
-            walk_speed_y = self.walk_speed / 2 * self.direction_y
-        else:
-            walk_speed_x = self.walk_speed * self.direction_x
-            walk_speed_y = self.walk_speed * self.direction_y
-        last_x = self.rect.x
-        last_y = self.rect.y
-        self._delta_x += (self.speed_x + walk_speed_x) * ticks
+        if self.direction_x or self.direction_y:
+            if self.direction_x and self.direction_y:
+                walk_speed_x = self.walk_speed / 2 * self.direction_x
+                walk_speed_y = self.walk_speed / 2 * self.direction_y
+            else:
+                walk_speed_x = self.walk_speed * self.direction_x
+                walk_speed_y = self.walk_speed * self.direction_y
+            last_x = self.rect.x
+            last_y = self.rect.y
+            self._delta_x += (self.speed_x + walk_speed_x) * ticks
 
-        # TODO: нужно оптимизировать. Сейчас O(2n)
-        # столкновения
-        if self._delta_x // 1:
-            self.rect.x += self._delta_x // 1
-            self._delta_x %= 1
+            # TODO: нужно оптимизировать. Сейчас O(2n)
+            # столкновения
+            if self._delta_x // 1:
+                self.rect.x += self._delta_x // 1
+                self._delta_x %= 1
 
-        for build in self.game.collibe_building_group:
-            if self.rect.colliderect(build.rect):
-                if last_x < self.rect.x:
-                    self.rect.right = build.rect.left
-                elif last_x > self.rect.x:
-                    self.rect.left = build.rect.right
+            for build in self.game.collibe_building_group:
+                if self.rect.colliderect(build.rect):
+                    if last_x < self.rect.x:
+                        self.rect.right = build.rect.left
+                    elif last_x > self.rect.x:
+                        self.rect.left = build.rect.right
 
-        self._delta_y += (self.speed_y + walk_speed_y) * ticks
-        if self._delta_y // 1:
-            self.rect.y += self._delta_y // 1
-            self._delta_y %= 1
+            self._delta_y += (self.speed_y + walk_speed_y) * ticks
+            if self._delta_y // 1:
+                self.rect.y += self._delta_y // 1
+                self._delta_y %= 1
 
-        for build in self.game.collibe_building_group:
-            if self.rect.colliderect(build.rect):
-                if last_y < self.rect.y:
-                    self.rect.bottom = build.rect.top
-                elif last_y > self.rect.y:
-                    self.rect.top = build.rect.bottom
+            for build in self.game.collibe_building_group:
+                if self.rect.colliderect(build.rect):
+                    if last_y < self.rect.y:
+                        self.rect.bottom = build.rect.top
+                    elif last_y > self.rect.y:
+                        self.rect.top = build.rect.bottom
 
         # взаимодействия
         for item in self.game.item:
@@ -112,3 +114,7 @@ class Player(pygame.sprite.Sprite):
             if self.interact is not None:
                 self.interact = None
                 self.game.ui.remove(self.text)
+
+    def update_size(self):
+        self.text.x = (self.game.width - self.width) / 2
+        self.text.y = (self.game.height - self.height) / 2

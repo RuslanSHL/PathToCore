@@ -8,9 +8,15 @@ class Game:
         pygame.display.set_caption(caption)
         # Экран
         self.width, self.height = self.size = width, height
-        self.screen = pygame.display.set_mode(self.size)
+        self.screen = pygame.display.set_mode(self.size, pygame.RESIZABLE)
         self.game_surface = pygame.Surface(self.size)
         # Камера
+        self.camera_size_x = width / 2
+        self.camera_size_y = height / 2
+        if self.camera_size_x < self.camera_size_y:
+            self.camera_scale = width / self.camera_size_x
+        elif self.camera_size_x > self.camera_size_y:
+            self.camera_scale = height / self.camera_size_y
         self.camera_x = 0
         self.camera_y = 0
         # Спрайты
@@ -42,6 +48,13 @@ class Game:
                 if self.phase.event_handling(event):
                     if event.type == pygame.QUIT:
                         self.running = False
+                    elif event.type == pygame.VIDEORESIZE:
+                        if event.w < event.h:
+                            self.camera_scale *= event.w / self.width
+                        else:
+                            self.camera_scale *= event.h / self.height
+                        self.width, self.height = event.w, event.h
+                        self.phase.update_size()
                     elif event.type == pygame.KEYDOWN:
                         if event.key in (pygame.K_LEFT, pygame.K_a):
                             self.player.direction_x += -1
@@ -72,7 +85,14 @@ class Game:
                 self.wall.draw(self.game_surface)
                 self.item.draw(self.game_surface)
                 self.life.draw(self.game_surface)
-                self.screen.blit(self.game_surface, (self.camera_x, self.camera_y))
+                if self.camera_scale != 1:
+                    game_surface = pygame.transform.scale(
+                            self.game_surface,
+                            (self.game_surface.get_rect().width * self.camera_scale,
+                             self.game_surface.get_rect().height * self.camera_scale))
+                    self.screen.blit(game_surface, (self.camera_x, self.camera_y))
+                else:
+                    self.screen.blit(self.game_surface, (self.camera_x, self.camera_y))
                 for i in self.ui:
                     i.draw(self.screen)
                 pygame.display.flip()
@@ -103,7 +123,7 @@ class Game:
 
 
 if __name__ == "__main__":
-    core = Game("PathToCore", 500, 500)
+    core = Game("PathToCore", 1000, 500)
     from Phase1 import Phase
 
     core.set_phase(Phase(core))
