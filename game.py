@@ -36,6 +36,7 @@ class Game:
         self.running = True
         _time_fps = 0
         while self.running:
+            # TODO: оптимизация
             time = self.clock.tick(max(self.fps, self.tps))
             self.tick = time / 1000 * self.tps
             # обработка событий pygame
@@ -145,9 +146,9 @@ class Camera:
         if size:
             width, height = size
             if width > height:
-                self.camera = self.game.width / width
+                self.scale = self.game.width / width
             else:
-                self.camera = self.game.height / height
+                self.scale = self.game.height / height
             self.update_size()
 
     def transform(self, obj):
@@ -179,6 +180,7 @@ class Camera:
                 self.transform(i)
 
     def update(self):
+        # TODO: оптимизация, округлять scale
         if self.delta_coords is not None:
             d_x, d_y = self.delta_coords
         else:

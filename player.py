@@ -1,5 +1,5 @@
 import pygame
-from ui import InteractText
+from ui import FollowText
 
 
 class Player(pygame.sprite.Sprite):
@@ -11,8 +11,12 @@ class Player(pygame.sprite.Sprite):
         self.height = height
         self.game = game
 
-        self.orig_image = game.load_image(texture)
-        self.orig_image = pygame.transform.scale(self.orig_image, (width, height))
+        if type(texture) is tuple:
+            self.orig_image = pygame.Surface((width, height))
+            self.orig_image.fill(texture)
+        else:
+            self.orig_image = game.load_image(texture)
+            self.orig_image = pygame.transform.scale(self.orig_image, (width, height))
         self.rect = pygame.Rect(x, y, width, height)
 
         self.direction_x = 0
@@ -30,11 +34,10 @@ class Player(pygame.sprite.Sprite):
         self.draw_y = y
         self.image = self.orig_image
 
-        self.text = InteractText(
+        self.text = FollowText(
             game,
-            (game.width - width) / 2,
-            (game.height - height) / 2,
-            "press\ne\nto interact",
+            self,
+            "press e to interact",
             (0, 0, 0), "arial", 20
         )
 
