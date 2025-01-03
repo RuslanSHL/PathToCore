@@ -13,9 +13,9 @@ class Phase:
         # game.player.set_animation(6, 1, 32, 32, 0.5)
 
         self.doors = [
-                Door(game, (255, 0, 0), 288, 320, 32, 64, True),
-                Door(game, (255, 0, 0), 640, 0, 64, 32, True),
-                Door(game, (255, 0, 0), 960, 384, 32, 64, True)
+                Door(game, (255, 0, 0), 288, 320, 32, 64, True),  # 1
+                Door(game, (255, 0, 0), 640, 0, 64, 32, True),  # 2
+                Door(game, (255, 0, 0), 960, 384, 32, 64, True)  # 3
                 ]
 
         self.walls = [
@@ -36,9 +36,21 @@ class Phase:
                 Wall(game, (0, 0, 0), 704, 0, 96, 32, True),  # 15
                 ]
 
+        self.furniture = {
+                'sofa': Item(game, (0, 0, 255), 416, 416, 128, 64, True),
+                'tv': Item(game, (0, 0, 255), 416, 256, 128, 32, True),
+                'kitchen': Item(game, (0, 0, 255), 768, 256, 192, 64, True),
+                'table': Item(game, (0, 0, 255), 704, 448, 160, 96, True),
+                'char': Item(game, (0, 0, 255), 874, 488, 32, 32, True),
+                'bed': Item(game, (0, 0, 255), 1152, 320, 128, 64, True),
+                'armchait': Item(game, (0, 0, 255), 1152, 534, 32, 32, True),
+                'work_table': Item(game, (0, 0, 255), 1088, 576, 192, 64, True),
+                'toilet': Item(game, (0, 0, 255), 96, 256, 32, 32, True),
+                'bath': Item(game, (0, 0, 255), 64, 384, 64, 128, True),
+                'sink': Item(game, (0, 0, 255), 192, 480, 64, 32, True)
+                }
+
         game.camera.change(obj=game.player, size=(1000, 1000))
-
-
 
     def event_handling(self, event):
         if event.type == pygame.KEYDOWN:

@@ -20,4 +20,3 @@ class FollowText:
             w, h = s.get_size()
             screen.blit(s, (x,
                             y - h * (len(lines) - i)))
-
