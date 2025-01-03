@@ -3,17 +3,16 @@ from ui import InteractText
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, game, texture, x, y, width, height):
-        super().__init__(game.all_sprites)
-        self.add(game.life)
+    def __init__(self, game, texture, x, y, width, height, group=None):
+        super().__init__(game.life if group is None else group)
 
         self.texture = texture
         self.width = width
         self.height = height
         self.game = game
 
-        self.image = game.load_image(texture)
-        self.image = pygame.transform.scale(self.image, (width, height))
+        self.orig_image = game.load_image(texture)
+        self.orig_image = pygame.transform.scale(self.orig_image, (width, height))
         self.rect = pygame.Rect(x, y, width, height)
 
         self.direction_x = 0
@@ -26,6 +25,10 @@ class Player(pygame.sprite.Sprite):
         self.interact = None
         self._last_interact = None
         self.animated = False
+
+        self.draw_x = x
+        self.draw_y = y
+        self.image = self.orig_image
 
         self.text = InteractText(
             game,
@@ -40,12 +43,14 @@ class Player(pygame.sprite.Sprite):
         self.animated = True
         self.current_frame = 0
         self._ticks = 0
-        self.frames = []
+        self.orig_image = []
         image = self.game.load_image(self.texture)
         for r in range(row):
             for c in range(col):
-                self.frames.append(image.subsurface(pygame.Rect(c * width, r * height, width, height)))
-        self.image = pygame.transform.scale(self.frames[0], (self.width, self.height))
+                frame = image.subsurface(pygame.Rect(c * width, r * height, width, height))
+                self.orig_image.append(pygame.transform.scale(frame, (self.width, self.height)))
+        self.frames = self.orig_image.copy()
+        self.image = self.orig_image[0]
 
     def update(self):
         ticks = self.game.tick
@@ -56,14 +61,8 @@ class Player(pygame.sprite.Sprite):
                 if self.direction_x or self.direction_y:
                     self.current_frame = (self.current_frame + 1) % len(self.frames)
                     self.image = self.frames[self.current_frame]
-                    self.image = pygame.transform.scale(
-                        self.image, (self.width, self.height)
-                    )
                 else:
                     self.image = self.frames[0]
-                    self.image = pygame.transform.scale(
-                        self.image, (self.width, self.height)
-                    )
                     self.current_frame = 0
         # FIXME: персонаж вверх влево идёт медленно
         # перемещение
@@ -84,7 +83,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x += self._delta_x // 1
                 self._delta_x %= 1
 
-            for build in self.game.collibe_building_group:
+            for build in self.game.collibe_group:
                 if self.rect.colliderect(build.rect):
                     if last_x < self.rect.x:
                         self.rect.right = build.rect.left
@@ -96,7 +95,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.y += self._delta_y // 1
                 self._delta_y %= 1
 
-            for build in self.game.collibe_building_group:
+            for build in self.game.collibe_group:
                 if self.rect.colliderect(build.rect):
                     if last_y < self.rect.y:
                         self.rect.bottom = build.rect.top
@@ -115,6 +114,5 @@ class Player(pygame.sprite.Sprite):
                 self.interact = None
                 self.game.ui.remove(self.text)
 
-    def update_size(self):
-        self.text.x = (self.game.width - self.width) / 2
-        self.text.y = (self.game.height - self.height) / 2
+    def draw(self, surface):
+        surface.blit(self.image, (self.draw_x, self.draw_y))

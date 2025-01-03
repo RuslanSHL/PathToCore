@@ -7,22 +7,14 @@ class Game:
         pygame.init()
         pygame.display.set_caption(caption)
         # Экран
-        self.width, self.height = self.size = width, height
+        self.width, self.height = self.size = 500, 500
+        self.game_width, self.game_height = width, height
         self.screen = pygame.display.set_mode(self.size, pygame.RESIZABLE)
-        self.game_surface = pygame.Surface(self.size)
+        self.game_surface = pygame.Surface((width, height))
         # Камера
-        self.camera_size_x = width / 2
-        self.camera_size_y = height / 2
-        if self.camera_size_x < self.camera_size_y:
-            self.camera_scale = width / self.camera_size_x
-        elif self.camera_size_x > self.camera_size_y:
-            self.camera_scale = height / self.camera_size_y
-        self.camera_x = 0
-        self.camera_y = 0
+        self.camera = Camera(self, coords=(0, 0))
         # Спрайты
-        self.all_sprites = pygame.sprite.Group()
-        self.building_group = pygame.sprite.Group()
-        self.collibe_building_group = pygame.sprite.Group()
+        self.collibe_group = pygame.sprite.Group()
         # Объекты
         self.floor = pygame.sprite.Group()
         self.wall = pygame.sprite.Group()
@@ -31,10 +23,13 @@ class Game:
         self.ui = []
         # Игровое время
         self.clock = pygame.time.Clock()
-        self.fps = 60
+        self.fps = 1000
         self.tps = 60
         self.ticks = 0
 
+    def resize(self, width, height):
+        self.game_width, self.game_height = width, height
+        self.game_surface = pygame.Surface((width, height))
 
     def run(self):
         """Главный цикл"""
@@ -49,12 +44,12 @@ class Game:
                     if event.type == pygame.QUIT:
                         self.running = False
                     elif event.type == pygame.VIDEORESIZE:
-                        if event.w < event.h:
-                            self.camera_scale *= event.w / self.width
-                        else:
-                            self.camera_scale *= event.h / self.height
-                        self.width, self.height = event.w, event.h
-                        self.phase.update_size()
+                        self.camera.scale *= event.w / self.width
+                        self.width = event.w
+                        self.height = event.h
+                        self.size = self.width, self.height
+                        self.camera.update_size()
+                        self.game_surface = pygame.Surface((self.width, self.height))
                     elif event.type == pygame.KEYDOWN:
                         if event.key in (pygame.K_LEFT, pygame.K_a):
                             self.player.direction_x += -1
@@ -73,26 +68,29 @@ class Game:
                             self.player.direction_y -= -1
                         elif event.key in (pygame.K_DOWN, pygame.K_s):
                             self.player.direction_y -= 1
-            self.all_sprites.update()
+
+            self.floor.update()
+            self.wall.update()
+            self.item.update()
+            self.life.update()
             self.phase.update()
+            print(self.clock.get_fps())
 
             _time_fps += time
             if _time_fps > 1000 / self.fps:
                 _time_fps %= 1000 / self.fps
-                self.screen.fill((255, 255, 255))
+                self.screen.fill((0, 0, 0))
                 self.game_surface.fill((255, 255, 255))
-                self.floor.draw(self.game_surface)
-                self.wall.draw(self.game_surface)
-                self.item.draw(self.game_surface)
-                self.life.draw(self.game_surface)
-                if self.camera_scale != 1:
-                    game_surface = pygame.transform.scale(
-                            self.game_surface,
-                            (self.game_surface.get_rect().width * self.camera_scale,
-                             self.game_surface.get_rect().height * self.camera_scale))
-                    self.screen.blit(game_surface, (self.camera_x, self.camera_y))
-                else:
-                    self.screen.blit(self.game_surface, (self.camera_x, self.camera_y))
+                self.camera.update()
+                for i in self.floor:
+                    i.draw(self.game_surface)
+                for i in self.wall:
+                    i.draw(self.game_surface)
+                for i in self.item:
+                    i.draw(self.game_surface)
+                for i in self.life:
+                    i.draw(self.game_surface)
+                self.screen.blit(self.game_surface, (0, 0))
                 for i in self.ui:
                     i.draw(self.screen)
                 pygame.display.flip()
@@ -120,6 +118,93 @@ class Game:
         """Выход"""
         print("bye!")
         pygame.quit()
+
+
+class Camera:
+    def __init__(self, game, obj=None, coords=None, delta_coords=None,
+                 size=None):
+        self.game = game
+        self.obj = obj
+        self.delta_coords = delta_coords
+        self.coords = coords
+        self.scale = 1
+        if size:
+            width, height = size
+            if width > height:
+                self.scale = game.width / width
+            else:
+                self.scale = game.height / height
+            self.update_size()
+        else:
+            self.scale = 1
+
+    def change(self, obj=None, coords=None, delta_coords=None, size=None):
+        self.obj = obj
+        self.delta_coords = delta_coords
+        self.coords = coords
+        if size:
+            width, height = size
+            if width > height:
+                self.camera = self.game.width / width
+            else:
+                self.camera = self.game.height / height
+            self.update_size()
+
+    def transform(self, obj):
+        if obj.animated:
+            frames = []
+            for frame in obj.orig_image:
+                frames.append(
+                    pygame.transform.scale(
+                        frame,
+                        (obj.width * self.scale, obj.height * self.scale)
+                    )
+                )
+            obj.frames = frames
+        else:
+            obj.image = pygame.transform.scale(
+                obj.orig_image,
+                (obj.width * self.scale, obj.height * self.scale)
+            )
+
+    def update_size(self):
+        if self.scale != 1:
+            for i in self.game.floor:
+                self.transform(i)
+            for i in self.game.wall:
+                self.transform(i)
+            for i in self.game.item:
+                self.transform(i)
+            for i in self.game.life:
+                self.transform(i)
+
+    def update(self):
+        if self.delta_coords is not None:
+            d_x, d_y = self.delta_coords
+        else:
+            d_x = 0
+            d_y = 0
+        c_x = self.game.width / 2
+        c_y = self.game.height / 2
+        if self.obj is None:
+            d_x += c_x - self.coords[0]
+            d_y += c_y - self.coords[1]
+        else:
+            d_x += c_x - self.obj.rect.centerx
+            d_y += c_y - self.obj.rect.centery
+
+        for i in self.game.floor:
+            i.draw_x = c_x - (c_x - i.rect.x - d_x) * self.scale
+            i.draw_y = c_y - (c_y - i.rect.y - d_y) * self.scale
+        for i in self.game.wall:
+            i.draw_x = c_x - (c_x - i.rect.x - d_x) * self.scale
+            i.draw_y = c_y - (c_y - i.rect.y - d_y) * self.scale
+        for i in self.game.item:
+            i.draw_x = c_x - (c_x - i.rect.x - d_x) * self.scale
+            i.draw_y = c_y - (c_y - i.rect.y - d_y) * self.scale
+        for i in self.game.life:
+            i.draw_x = c_x - (c_x - i.rect.x - d_x) * self.scale
+            i.draw_y = c_y - (c_y - i.rect.y - d_y) * self.scale
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ import pygame
 
 class InteractText:
     def __init__(self, game, x, y, text, color, font, size):
+        # TODO обновление кооринат при ходбе
         self.game = game
         self.font = pygame.font.SysFont(font, size)
         self.text = text
