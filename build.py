@@ -42,7 +42,7 @@ class Item(Build):
         )
 
     def interact(self):
-        print("interact with", self)
+        self.game.phase.story_event_handling(self)
 
 
 class Floor(Build):
