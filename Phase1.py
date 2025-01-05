@@ -15,19 +15,13 @@ class Phase:
 
         self.build()
 
-        self._count = 0
+        self._count = 1
         self._task = 0
-        self._flag = 0
+        self._flag = False
+        self._wait = 0
 
         self.task_text = TaskText(game, 0, 0, 'Проживайте обычные деньки', 'Умойтесь', (0, 0, 0), (100, 100, 100), (100, 100, 100, 200), 'arial', 20)
         game.ui.append(self.task_text)
-
-    def story_event_handling(self, item):
-        if self._count < 10:
-            if self._task == 0:
-                if item == self.furniture['sink']:
-                    self._task += 1
-                    self._flag = 1
 
     def event_handling(self, event):
         if event.type == pygame.KEYDOWN:
@@ -36,9 +30,97 @@ class Phase:
                     self.game.player.interact.interact()
         return True
 
+    def story_event_handling(self, item):
+        if self._count < 10:
+            if self._task == 0:
+                if item == self.furniture['sink']:
+                    self.game.player.can_walk = False
+                    self._wait = int(180 / self._count)
+                    self._flag = True
+            elif self._task == 1:
+                if item == self.furniture['kitchen']:
+                    self.game.player.can_walk = False
+                    self._wait = int(300 / self._count)
+                    self._flag = True
+            elif self._task == 2:
+                if item == self.furniture['table']:
+                    self._task = 3
+                    self.create_task_text('Проживайте обычные деньки', 'Сядьте за стол')
+            elif self._task == 3:
+                if item == self.furniture['chair']:
+                    self._flag = True
+                    self._task = 4
+                    self._wait = int(300 / self._count)
+                    self.game.player.can_walk = False
+                    # TODO: игрока делаем невидимым, а у стула меняем текстуру
+            elif self._task == 5:
+                if item == self.furniture['kitchen']:
+                    self._flag = True
+                    self._wait = int(180 / self._count)
+                    self.game.player.can_walk = False
+            elif self._task == 6:
+                if item == self.furniture['armchair']:
+                    self._flag = True
+                    self._wait = int(300 / self._count)
+                    self.game.player.can_walk = False
+            elif self._task == 7:
+                if item == self.furniture['sink']:
+                    self._flag = True
+                    self._wait = int(180 / self._count)
+                    self.game.player.can_walk = False
+            elif self._task == 8:
+                if item == self.furniture['bed']:
+                    self._flag = True
+                    self._wait = int(500 / self._count)
+                    self.game.player.can_walk = False
+
     def update(self):
-        if self._flag:
-            print('work')
+        if self._wait > 0:
+            self._wait -= self.game.tick
+        else:
+            if self._task == 0 and self._flag:
+                self.game.player.can_walk = True
+                self.create_task_text('Проживайте обычные деньки', 'Приготовте завтрак')
+                self._task = 1
+                self._flag = False
+            elif self._task == 1 and self._flag:
+                self.game.player.can_walk = True
+                self.create_task_text('Проживайте обычные деньки', 'Поставте тарелку на стол')
+                self._task = 2
+                self._flag = False
+            elif self._task == 4 and self._flag:
+                self.game.player.can_walk = True
+                self.create_task_text('Проживайте обычные деньки', 'Помойте тарелку')
+                self._task = 5
+                self._flag = False
+            elif self._task == 5 and self._flag:
+                self._task = 6
+                self.game.player.can_walk = True
+                self.create_task_text('Проживайте обычные деньки', 'Сядьте за компьютер')
+                self._flag = False
+            elif self._task == 6 and self._flag:
+                self._task = 7
+                self.game.player.can_walk = True
+                self.create_task_text('Проживайте обычные деньки', 'Умойтесь')
+                self._flag = False
+            elif self._task == 7 and self._flag:
+                self._task = 8
+                self.game.player.can_walk = True
+                self._flag = False
+                self.create_task_text('Проживайте обычные деньки', 'Ложитесь спать')
+            elif self._task == 8 and self._flag:
+                self._count += 1
+                self._flag = False
+                self.create_task_text('Проживайте обычные деньки', 'Умойтесь')
+                self._task = 0
+                self.game.player.can_walk = True
+
+
+    def create_task_text(self, title, subtitle, title_color=(0, 0, 0), subtitle_color=(100, 100, 100)):
+        self.game.ui.remove(self.task_text)
+        self.task_text = TaskText(self.game, 0, 0, title, subtitle, title_color, subtitle_color, (100, 100, 100, 200), 'arial', 20)
+        self.game.ui.append(self.task_text)
+
 
     def build(self):
         game = self.game
@@ -71,9 +153,9 @@ class Phase:
                 'tv': Item(game, (0, 0, 255), 416, 256, 128, 32, True),
                 'kitchen': Item(game, (0, 0, 255), 768, 256, 192, 64, True),
                 'table': Item(game, (0, 0, 255), 704, 448, 160, 96, True),
-                'char': Item(game, (0, 0, 255), 874, 488, 32, 32, True),
+                'chair': Item(game, (0, 0, 255), 874, 488, 32, 32, True),
                 'bed': Item(game, (0, 0, 255), 1152, 320, 128, 64, True),
-                'armchait': Item(game, (0, 0, 255), 1152, 534, 32, 32, True),
+                'armchair': Item(game, (0, 0, 255), 1152, 534, 32, 32, True),
                 'work_table': Item(game, (0, 0, 255), 1088, 576, 192, 64, True),
                 'toilet': Item(game, (0, 0, 255), 96, 256, 32, 32, True),
                 'bath': Item(game, (0, 0, 255), 64, 384, 64, 128, True),

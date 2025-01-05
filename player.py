@@ -29,6 +29,7 @@ class Player(pygame.sprite.Sprite):
         self.interact = None
         self._last_interact = None
         self.animated = False
+        self.can_walk = True
 
         self.draw_x = x
         self.draw_y = y
@@ -61,7 +62,7 @@ class Player(pygame.sprite.Sprite):
             self._ticks += ticks
             if self._ticks > 1 / self.fpt:
                 self._ticks %= 1 / self.fpt
-                if self.direction_x or self.direction_y:
+                if (self.direction_x or self.direction_y) and self.can_walk:
                     self.current_frame = (self.current_frame + 1) % len(self.frames)
                     self.image = self.frames[self.current_frame]
                 else:
@@ -69,7 +70,7 @@ class Player(pygame.sprite.Sprite):
                     self.current_frame = 0
         # FIXME: персонаж вверх влево идёт медленно
         # перемещение
-        if self.direction_x or self.direction_y:
+        if (self.direction_x or self.direction_y) and self.can_walk:
             if self.direction_x and self.direction_y:
                 walk_speed_x = self.walk_speed / 2 * self.direction_x
                 walk_speed_y = self.walk_speed / 2 * self.direction_y
