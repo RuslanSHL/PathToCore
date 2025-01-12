@@ -84,7 +84,7 @@ class Game:
             self.item.update()
             self.life.update()
             self.phase.update()
-            # print(self.clock.get_fps())
+            print(self.clock.get_fps())
 
             _time_fps += time
             if _time_fps > 1000 / self.fps:
