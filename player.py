@@ -116,7 +116,8 @@ class Player(pygame.sprite.Sprite):
         else:
             if self.interact is not None:
                 self.interact = None
-                self.game.ui.remove(self.text)
+                if self.text in self.game.ui:
+                    self.game.ui.remove(self.text)
 
     def draw(self, surface):
         surface.blit(self.image, (self.draw_x, self.draw_y))

@@ -6,6 +6,7 @@ class FollowText:
     def __init__(self, game, obj, text, color, font, size):
         # TODO: выравнивание по центру
         self.game = game
+        self.resizable = False
         self.obj = obj
         self.font = pygame.font.SysFont(font, size)
         self.text = text
@@ -28,6 +29,7 @@ class TaskText:
         self.game = game
         self.draw_x = x
         self.draw_y = y
+        self.resizable = False
 
         title_font = pygame.font.SysFont(font, size)
         subtitle_font = pygame.font.SysFont(font, size - 2)
@@ -52,6 +54,173 @@ class TaskText:
     def update_scale(scale):
         self.draw_x = self.x * scale
         self.draw_y = self.y * scale
+
+    def draw(self, screen):
+        screen.blit(self.surface, (self.draw_x, self.draw_y))
+
+
+class Computer_1:
+    def __init__(self, game, x, y, width, height, step, steps):
+        self.resizable = True
+        self.text = '''
+class Computer_1:
+    def __init__(self, game, x, y, width, height, step, steps):
+        self.text = 'hello\nhi'
+        self.game = game
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.font = pygame.font.SysFont('arial', 20)
+        W = pygame.K_w
+        S = pygame.K_s
+        D = pygame.K_d
+        A = pygame.K_a
+        self.steps = [W, S, D, A, D, A, S, W, W, A, S][:steps]
+        self.step = step
+        self.rendered_text = [self.font.render(i, True, (0, 0, 0)) for i in self.text.split('\n')[:self.step]]
+
+        self.draw_x = x
+        self.draw_y = y
+        self.update_text()
+
+    def update_scale(scale):
+        self.draw_x = self.x * scale
+        self.draw_y = self.y * scale
+
+    def handler_key(self, key):
+        print(key)
+        if self.steps:
+            print('have steps', self.steps)
+            if key == self.steps[0]:
+                print('=')
+                del self.steps[0]
+                print(self.steps)
+        '''
+        self.game = game
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.draw_width = width
+        self.draw_height = height
+        self.font = pygame.font.SysFont('arial', 20)
+        W = pygame.K_w
+        S = pygame.K_s
+        D = pygame.K_d
+        A = pygame.K_a
+        self.steps = [W, S, D, A, D, A, S, W, W, A, S][:steps]
+        self.step = step
+        self.rendered_text = [self.font.render(i, True, (0, 0, 0)) for i in self.text.split('\n')[:self.step]]
+
+        self.draw_x = x
+        self.draw_y = y
+        self.update_text()
+
+    def update_scale(scale):
+        self.draw_x = self.x * scale
+        self.draw_y = self.y * scale
+
+    def handler_key(self, key):
+        if self.steps:
+            if key == self.steps[0]:
+                del self.steps[0]
+                self.step += 1
+            else:
+                self.step -= 1
+                self.steps.insert(0, pygame.K_x)
+            self.update_text()
+
+    def update(self):
+        self.update_text()
+
+    def update_text(self):
+        print(self.draw_width, self.draw_height)
+        self.surface = pygame.Surface((self.draw_width, self.draw_height))
+        if self.step:
+            self.rendered_text = [self.font.render(i, True, (0, 255, 0)) for i in self.text.split('\n')[:self.step]]
+            h = self.rendered_text[0].get_size()[1]
+            self.rendered_text = self.rendered_text[-self.draw_height // h + 1:]
+            for i, text in enumerate(self.rendered_text):
+                self.surface.blit(text, (0, h * i))
+        if self.steps:
+            if self.steps[0] == pygame.K_w:
+                next_step = 'W'
+                color = (0, 255, 0)
+            elif self.steps[0] == pygame.K_a:
+                next_step = 'A'
+                color = (0, 255, 0)
+            elif self.steps[0] == pygame.K_d:
+                next_step = 'D'
+                color = (0, 255, 0)
+            elif self.steps[0] == pygame.K_s:
+                next_step = 'S'
+                color = (0, 255, 0)
+            elif self.steps[0] == pygame.K_x:
+                next_step = 'X'
+                color = (255, 0, 0)
+            next_step_text = self.font.render('Нажмите ' + next_step, True, color)
+            self.surface.blit(
+                next_step_text,
+                (self.width - next_step_text.get_size()[0], self.draw_height - next_step_text.get_size()[1])
+            )
+
+
+    def draw(self, screen):
+        screen.blit(self.surface, (self.draw_x, self.draw_y))
+
+
+class Computer_2:
+    def __init__(self, game, x, y, width, height):
+        self.resizable = True
+        self.game = game
+        self.text = '106-439-761-'
+        self.answer = ''
+        self.right_answer = '095'
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.draw_width = width
+        self.draw_height = height
+        self.font = pygame.font.SysFont('arial', 30)
+
+        self.button = (294, 343, 392, 441, 490, 539, 588, 637, 686, 735)
+        self.is_completed = False
+
+        self.draw_x = x
+        self.draw_y = y
+        self.update_text()
+
+    def update_scale(scale):
+        self.draw_x = self.x * scale
+        self.draw_y = self.y * scale
+
+    def handler_mouse(self, event):
+        if 294 < event.pos[1] < 343:
+            for i, button_x in enumerate(self.button):
+                if button_x < event.pos[0] < button_x + 49:
+                    self.answer += str(i)
+                    if len(self.answer) == 3:
+                        if self.answer == self.right_answer:
+                            self.is_completed = True
+                        else:
+                            self.answer = ''
+                    self.update_text()
+
+    def update(self):
+        self.update_text()
+
+    def update_text(self):
+        l = len(self.answer)
+        text = self.text + self.answer + 'x' * (3 - l)
+        self.surface = pygame.Surface((self.draw_width, self.draw_height))
+        rendered_text = self.font.render(text, True, (0, 255, 0))
+        w = rendered_text.get_size()[0]
+        self.surface.blit(rendered_text, ((self.game.width - w) / 2, 196))
+        for i, pos_x in enumerate(self.button):
+            button = self.font.render(str(i), True, (0, 255, 0))
+            self.surface.blit(button, (pos_x, 294))
 
     def draw(self, screen):
         screen.blit(self.surface, (self.draw_x, self.draw_y))

@@ -7,7 +7,7 @@ class Game:
         pygame.init()
         pygame.display.set_caption(caption)
         # Экран
-        self.width, self.height = self.size = 500, 500
+        self.width, self.height = self.size = 1000, 500
         self.game_width, self.game_height = width, height
         self.screen = pygame.display.set_mode(self.size, pygame.RESIZABLE)
         self.game_surface = pygame.Surface((width, height))
@@ -45,11 +45,20 @@ class Game:
                     if event.type == pygame.QUIT:
                         self.running = False
                     elif event.type == pygame.VIDEORESIZE:
+                        scale = event.h / self.height
                         self.camera.scale *= event.w / self.width
                         self.width = event.w
                         self.height = event.h
                         self.size = self.width, self.height
                         self.camera.update_size()
+                        # FIXME: изменение размера ui
+                        for i in self.ui:
+                            if i.resizable:
+                                i.draw_x = i.x * scale
+                                i.draw_y = i.y * scale
+                                i.draw_width = int(i.draw_width * scale)
+                                i.draw_height = int(i.draw_height * scale)
+                                i.update()
                         self.game_surface = pygame.Surface((self.width, self.height))
                     elif event.type == pygame.KEYDOWN:
                         if event.key in (pygame.K_LEFT, pygame.K_a):
@@ -62,20 +71,20 @@ class Game:
                             self.player.direction_y += 1
                     elif event.type == pygame.KEYUP:
                         if event.key in (pygame.K_LEFT, pygame.K_a):
-                            self.player.direction_x -= -1
+                            self.player.direction_x = 0
                         elif event.key in (pygame.K_RIGHT, pygame.K_d):
-                            self.player.direction_x -= 1
+                            self.player.direction_x = 0
                         elif event.key in (pygame.K_UP, pygame.K_w):
-                            self.player.direction_y -= -1
+                            self.player.direction_y = 0
                         elif event.key in (pygame.K_DOWN, pygame.K_s):
-                            self.player.direction_y -= 1
+                            self.player.direction_y = 0
 
             self.floor.update()
             self.wall.update()
             self.item.update()
             self.life.update()
             self.phase.update()
-            print(self.clock.get_fps())
+            # print(self.clock.get_fps())
 
             _time_fps += time
             if _time_fps > 1000 / self.fps:
@@ -158,14 +167,14 @@ class Camera:
                 frames.append(
                     pygame.transform.scale(
                         frame,
-                        (obj.width * self.scale, obj.height * self.scale)
+                        (int(obj.image_width * self.scale), int(obj.image_height * self.scale))
                     )
                 )
             obj.frames = frames
         else:
             obj.image = pygame.transform.scale(
                 obj.orig_image,
-                (obj.width * self.scale, obj.height * self.scale)
+                (int(obj.width * self.scale) + 1, int(obj.height * self.scale) + 1)
             )
 
     def update_size(self):
@@ -196,22 +205,23 @@ class Camera:
             d_y += c_y - self.obj.rect.centery
 
         for i in self.game.floor:
-            i.draw_x = c_x - (c_x - i.rect.x - d_x) * self.scale
-            i.draw_y = c_y - (c_y - i.rect.y - d_y) * self.scale
+            i.draw_x = int(c_x - (c_x - i.rect.x - d_x) * self.scale) - 1
+            i.draw_y = int(c_y - (c_y - i.rect.y - d_y) * self.scale) - 1
         for i in self.game.wall:
-            i.draw_x = c_x - (c_x - i.rect.x - d_x) * self.scale
-            i.draw_y = c_y - (c_y - i.rect.y - d_y) * self.scale
+            i.draw_x = int(c_x - (c_x - i.rect.x - d_x) * self.scale) - 1
+            i.draw_y = int(c_y - (c_y - i.rect.y - d_y) * self.scale) - 1
         for i in self.game.item:
-            i.draw_x = c_x - (c_x - i.rect.x - d_x) * self.scale
-            i.draw_y = c_y - (c_y - i.rect.y - d_y) * self.scale
+            i.draw_x = int(c_x - (c_x - i.image_x - d_x) * self.scale) - 1
+            i.draw_y = int(c_y - (c_y - i.image_y - d_y) * self.scale) - 1
         for i in self.game.life:
-            i.draw_x = c_x - (c_x - i.rect.x - d_x) * self.scale
-            i.draw_y = c_y - (c_y - i.rect.y - d_y) * self.scale
+            i.draw_x = int(c_x - (c_x - i.rect.x - d_x) * self.scale) - 1
+            i.draw_y = int(c_y - (c_y - i.rect.y - d_y) * self.scale) - 1
 
 
 if __name__ == "__main__":
     core = Game("PathToCore", 1000, 500)
     from Phase1 import Phase
+    from Phase2 import Phase2
 
     core.set_phase(Phase(core))
     core.run()
