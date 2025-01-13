@@ -16,7 +16,7 @@ class Phase:
 
         self.build()
 
-        self._count = 10
+        self._count = 1
         self._task = 0
         self._flag = False
         self._wait = 0
