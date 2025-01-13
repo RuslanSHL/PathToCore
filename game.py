@@ -84,13 +84,13 @@ class Game:
             self.item.update()
             self.life.update()
             self.phase.update()
-            print(self.clock.get_fps())
+            # print(self.clock.get_fps())
 
             _time_fps += time
             if _time_fps > 1000 / self.fps:
                 _time_fps %= 1000 / self.fps
                 self.screen.fill((0, 0, 0))
-                self.game_surface.fill((255, 255, 255))
+                self.game_surface.fill((0, 0, 0))
                 self.camera.update()
                 for i in self.floor:
                     i.draw(self.game_surface)
@@ -174,7 +174,7 @@ class Camera:
         else:
             obj.image = pygame.transform.scale(
                 obj.orig_image,
-                (int(obj.width * self.scale) + 1, int(obj.height * self.scale) + 1)
+                (int(obj.image_width * self.scale) + 1, int(obj.image_height * self.scale) + 1)
             )
 
     def update_size(self):
@@ -205,17 +205,17 @@ class Camera:
             d_y += c_y - self.obj.rect.centery
 
         for i in self.game.floor:
-            i.draw_x = int(c_x - (c_x - i.rect.x - d_x) * self.scale) - 1
-            i.draw_y = int(c_y - (c_y - i.rect.y - d_y) * self.scale) - 1
+            i.draw_x = int(c_x - (c_x - i.rect.x + i.d_x_image - d_x) * self.scale) - 1
+            i.draw_y = int(c_y - (c_y - i.rect.y + i.d_y_image - d_y) * self.scale) - 1
         for i in self.game.wall:
-            i.draw_x = int(c_x - (c_x - i.rect.x - d_x) * self.scale) - 1
-            i.draw_y = int(c_y - (c_y - i.rect.y - d_y) * self.scale) - 1
+            i.draw_x = int(c_x - (c_x - i.rect.x + i.d_x_image - d_x) * self.scale) - 1
+            i.draw_y = int(c_y - (c_y - i.rect.y + i.d_y_image - d_y) * self.scale) - 1
         for i in self.game.item:
-            i.draw_x = int(c_x - (c_x - i.image_x - d_x) * self.scale) - 1
-            i.draw_y = int(c_y - (c_y - i.image_y - d_y) * self.scale) - 1
+            i.draw_x = int(c_x - (c_x - i.rect.x + i.d_x_image - d_x) * self.scale) - 1
+            i.draw_y = int(c_y - (c_y - i.rect.y + i.d_y_image - d_y) * self.scale) - 1
         for i in self.game.life:
-            i.draw_x = int(c_x - (c_x - i.rect.x - d_x) * self.scale) - 1
-            i.draw_y = int(c_y - (c_y - i.rect.y - d_y) * self.scale) - 1
+            i.draw_x = int(c_x - (c_x - i.rect.x + i.d_x_image - d_x) * self.scale) - 1
+            i.draw_y = int(c_y - (c_y - i.rect.y + i.d_y_image - d_y) * self.scale) - 1
 
 
 if __name__ == "__main__":

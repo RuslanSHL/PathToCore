@@ -10,7 +10,7 @@ class Phase:
         self.game = game
         game.resize(1000, 1000)
 
-        game.player = Player(game, 'player.png', 1216, 384, 64, 64)
+        game.player = Player(game, 'player.png', 1216, 384, 32, 32, d_y=32, d_x = 16, scale=2)
         # game.player.set_animation(6, 1, 32, 32, 0.5)
         game.camera.change(obj=game.player, size=(400, 400))
 
@@ -244,4 +244,11 @@ class Phase:
                 'bath': Item(game, 'bath.png', 64, 384, 64, 128, True),
                 'sink': Item(game, 'sink.png', 192, 480, 64, 32, True)
                 }
+
+        self.floor = [
+                Floor(game, (255, 255, 255), 64, 256, 256, 256, False),
+                Floor(game, (240, 201, 86), 576, 0, 192, 256, False),
+                Floor(game, (240, 201, 86), 320, 256, 640, 384, False),
+                Floor(game, (240, 201, 86), 960, 320, 320, 320, False)
+                ]
         self.game.camera.update_size()

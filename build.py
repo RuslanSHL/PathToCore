@@ -2,7 +2,7 @@ import pygame
 
 
 class Build(pygame.sprite.Sprite):
-    def __init__(self, game, texture, x, y, width, height, is_collibe):
+    def __init__(self, game, texture, x, y, width, height, is_collibe, d_x=0, d_y=0, scale=1):
         super().__init__()
         self.game = game
         self.animated = False
@@ -10,8 +10,9 @@ class Build(pygame.sprite.Sprite):
         if is_collibe:
             self.add(game.collibe_group)
         if type(texture) is str:
-            self.orig_image = game.load_image(texture)
-            self.orig_image = pygame.transform.scale(self.orig_image, (width, height))
+            orig_image = game.load_image(texture)
+            w, h = orig_image.get_size()
+            self.orig_image = pygame.transform.scale(orig_image, (w * scale, h * scale))
         else:
             self.orig_image = pygame.Surface((width, height))
             self.orig_image.fill(texture)
@@ -20,12 +21,11 @@ class Build(pygame.sprite.Sprite):
         self.height = height
 
         self.image = self.orig_image
-        self.draw_x = x
-        self.draw_y = y
-        self.image_width = width
-        self.image_height = height
-        self.image_x = x
-        self.image_y = y
+        self.image_width, self.image_height = self.orig_image.get_size()
+        self.d_x_image = d_x
+        self.d_y_image = d_y
+        self.draw_x = x + d_x
+        self.draw_y = y + d_y
 
     def draw(self, surface):
         surface.blit(self.image, (self.draw_x, self.draw_y))
@@ -102,6 +102,7 @@ class Door(Item):
         super().__init__(*args, radius=radius)
         if horizontal:
             self.orig_image = pygame.transform.rotate(self.orig_image, -90)
+            self.image_width, self.image_height = self.image_height, self.image_width
 
     def toggle(self):
         if self.is_collibe:
@@ -121,22 +122,22 @@ class Door(Item):
             if self.is_collibe:
                 if self.horizontal:
                     self.orig_image = pygame.transform.rotate(self.game.load_image('opened_door.png'), -90)
-                    self.image_y -= 64
-                    self.height = 96
+                    self.d_y_image += 64
+                    self.image_height = 96
                 else:
                     self.orig_image = self.game.load_image('opened_door.png')
-                    self.image_x -= 64
-                    self.width = 96
+                    self.d_x_image += 64
+                    self.image_width = 96
                 self.game.camera.update_size()
             else:
                 if self.horizontal:
                     self.orig_image = pygame.transform.rotate(self.game.load_image('door.png'), -90)
-                    self.image_y += 64
-                    self.height = 32
+                    self.d_y_image -= 64
+                    self.image_height = 32
                 else:
                     self.orig_image = self.game.load_image('door.png')
-                    self.image_x += 64
-                    self.width = 32
+                    self.d_x_image -= 64
+                    self.image_width = 32
                 self.game.camera.update_size()
             self.toggle()
         super().interact()

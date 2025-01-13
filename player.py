@@ -3,7 +3,7 @@ from ui import FollowText
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, game, texture, x, y, width, height, group=None):
+    def __init__(self, game, texture, x, y, width, height, group=None, d_x=0, d_y=0, scale=1):
         super().__init__(game.life if group is None else group)
 
         self.texture = texture
@@ -15,8 +15,9 @@ class Player(pygame.sprite.Sprite):
             self.orig_image = pygame.Surface((width, height))
             self.orig_image.fill(texture)
         else:
-            self.orig_image = game.load_image(texture)
-            self.orig_image = pygame.transform.scale(self.orig_image, (width, height))
+            orig_image = game.load_image(texture)
+            w, h = orig_image.get_size()
+            self.orig_image = pygame.transform.scale(orig_image, (w * scale, h * scale))
         self.rect = pygame.Rect(x, y, width, height)
 
         self.direction_x = 0
@@ -31,9 +32,14 @@ class Player(pygame.sprite.Sprite):
         self.animated = False
         self.can_walk = True
 
-        self.draw_x = x
-        self.draw_y = y
         self.image = self.orig_image
+
+        self.image_width, self.image_height = self.orig_image.get_size()
+        print(self.image_width, self.image_height)
+        self.d_x_image = d_x
+        self.d_y_image = d_y
+        self.draw_x = x + d_x
+        self.draw_y = y + d_y
 
         self.text = FollowText(
             game,
@@ -52,7 +58,7 @@ class Player(pygame.sprite.Sprite):
         for r in range(row):
             for c in range(col):
                 frame = image.subsurface(pygame.Rect(c * width, r * height, width, height))
-                self.orig_image.append(pygame.transform.scale(frame, (self.width, self.height)))
+                self.orig_image.append(frame)
         self.frames = self.orig_image.copy()
         self.image = self.orig_image[0]
 
