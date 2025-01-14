@@ -221,7 +221,7 @@ class Camera:
 if __name__ == "__main__":
     core = Game("PathToCore", 1000, 500)
     from Phase1 import Phase
-    from Phase2 import Phase2
+    # from Phase2 import Phase2
 
     core.set_phase(Phase(core))
     core.run()

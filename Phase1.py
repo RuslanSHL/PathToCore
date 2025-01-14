@@ -1,5 +1,4 @@
 import pygame
-from Phase2 import Phase2
 from build import Wall, Floor, Item, Door
 from player import Player
 from ui import FollowText, TaskText, Computer_1
@@ -20,7 +19,7 @@ class Phase:
         self._task = 0
         self._flag = False
         self._wait = 0
-        self._c_step = 20
+        self._c_step = 0
 
         self.task_text = TaskText(game, 0, 0, 'Проживайте обычные деньки', 'Умойтесь', (0, 0, 0), (100, 100, 100), (100, 100, 100, 200), 'arial', 20)
         game.ui.append(self.task_text)
@@ -38,6 +37,8 @@ class Phase:
 
     def story_event_handling(self, item):
         print(item)
+        if isinstance(item, Door):
+            return
         if self._count < 10:
             if self._task == 0:
                 if item == self.furniture['sink']:
@@ -84,6 +85,11 @@ class Phase:
                     self._wait = int(500 / self._count)
                     self.game.player.can_walk = False
         else:
+            if item == self.furniture['sofa']:
+                print('Сколько себя помню, я никогда на нём не сидел')
+                print('Сколько себя помню...')
+            elif item == self.furniture['tv']:
+                print('Когда в последний раз его включал')
             if self._task == 0:
                 if item == self.furniture['sink']:
                     self.game.player.can_walk = False
@@ -105,14 +111,12 @@ class Phase:
                     self._wait = 300
                     self._flag = True
                 else:
-                    phrases = {self.furniture['sofa']: 'Сколько себя помню, я никогда на нём не сидел',
-                                self.furniture['tv']: 'Когда я последний раз его включал?'}
-                    text = phrases.get(item, 'Для начала позавтракаю')
+                    text = 'Для начала позавтракаю'
                     print(text)
             elif self._task == 2:
                 if item == self.furniture['table']:
                     self._task = 3
-                    self.create_task_text('Проживайте обычные деньки', 'Сядьте за стол')
+                    self.create_task_text('Проживайте обычные деньки?', 'Сядьте за стол')
             elif self._task == 3:
                 if item == self.furniture['chair']:
                     self._flag = True
@@ -135,9 +139,10 @@ class Phase:
                     self._flag = True
                     self._wait = 300
                     self.game.player.can_walk = False
-            elif self._task == 10:
-                if item == self.doors[1]:
-                    self._task = 11
+                else:
+                    phrases = {self.furniture['bed']: 'За работу *лёг спать*'}
+                    text = phrases.get(item, 'Мне нужно работать... Зачем?')
+                    print(text)
 
     def update(self):
         if self._wait > 0:
@@ -145,23 +150,36 @@ class Phase:
         else:
             if self._task == 0 and self._flag:
                 self.game.player.can_walk = True
-                self.create_task_text('Проживайте обычные деньки', 'Приготовте завтрак')
+                if self._count < 10:
+                    self.create_task_text('Проживайте обычные деньки', 'Приготовте завтрак')
+                else:
+                    self.create_task_text('Проживайте обычные деньки?', 'Приготовте завтрак')
                 self._task = 1
                 self._flag = False
             elif self._task == 1 and self._flag:
                 self.game.player.can_walk = True
-                self.create_task_text('Проживайте обычные деньки', 'Поставте тарелку на стол')
+                if self._count < 10:
+                    self.create_task_text('Проживайте обычные деньки', 'Поставте тарелку на стол')
+                else:
+                    self.create_task_text('Проживайте обычные деньки?', 'Поставте тарелку на стол')
                 self._task = 2
                 self._flag = False
             elif self._task == 4 and self._flag:
                 self.game.player.can_walk = True
-                self.create_task_text('Проживайте обычные деньки', 'Помойте тарелку')
+                if self._count < 10:
+                    self.create_task_text('Проживайте обычные деньки', 'Помойте тарелку')
+                else:
+                    self.create_task_text('Проживайте обычные деньки?', 'Помойте тарелку')
                 self._task = 5
                 self._flag = False
             elif self._task == 5 and self._flag:
                 self._task = 6
                 self.game.player.can_walk = True
-                self.create_task_text('Проживайте обычные деньки', 'Сядьте за компьютер')
+                if self._count < 10:
+                    self.create_task_text('Проживайте обычные деньки', 'Сядьте за компьютер')
+                else:
+                    self.create_task_text('Проживайте обычные деньки?', 'Сядьте за компьютер')
+                print('Опять работать...')
                 self._flag = False
             elif self._task == 6 and self._flag:
                 if self._count >= 10:
@@ -174,7 +192,7 @@ class Phase:
                         self.doors[1].closed = False
                         self._flag = False
                         self.game.player.can_walk = True
-                        self._task = 10
+                        self._task = 11
                 else:
                     if not self.computer.steps:
                         self._task = 7
