@@ -53,14 +53,19 @@ class Player(pygame.sprite.Sprite):
         self.animated = True
         self.current_frame = 0
         self._ticks = 0
+        self.last_direction_x = 0
+        rotated_frames = [pygame.transform.flip(self.orig_image, True, False)]
         self.orig_image = [self.orig_image]
         image = self.game.load_image(image)
         for r in range(row):
             for c in range(col):
                 frame = image.subsurface(pygame.Rect(c * width, r * height, width, height))
                 self.orig_image.append(frame)
+                rotated_frames.append(pygame.transform.flip(frame, True, False))
+        self.orig_image += rotated_frames
         self.frames = self.orig_image.copy()
         self.image = self.orig_image[0]
+        self.game.camera.update_size()
 
     def on_floor(self):
         return pygame.sprite.spritecollide(self, self.game.floor, False)
@@ -72,14 +77,26 @@ class Player(pygame.sprite.Sprite):
             if self._ticks > 1 / self.fpt:
                 self._ticks %= 1 / self.fpt
                 if (self.direction_x or self.direction_y) and self.can_walk:
-                    if self.current_frame < len(self.frames) - 1:
-                        self.current_frame += 1
-                    else:
-                        self.current_frame = 1
+                    if self.direction_x == 1 or (not self.direction_x and self.last_direction_x == 1):
+                        if self.current_frame < len(self.frames) - 1 and self.last_direction_x == 1:
+                            self.current_frame += 1
+                        else:
+                            self.current_frame = int(len(self.frames) / 2)
+                    elif self.direction_x == -1 or (not self.direction_x and self.last_direction_x == -1):
+                        if self.current_frame < len(self.frames) / 2 - 1 and self.last_direction_x == -1:
+                            self.current_frame += 1
+                        else:
+                            self.current_frame = 1
+                    if self.direction_x:
+                        self.last_direction_x = self.direction_x
                     self.image = self.frames[self.current_frame]
                 else:
-                    self.image = self.frames[0]
-                    self.current_frame = 0
+                    if self.last_direction_x == 1:
+                        self.current_frame = int(len(self.frames) / 2)
+                    else:
+                        self.current_frame = 0
+                    self.image = self.frames[self.current_frame]
+
         # FIXME: персонаж вверх влево идёт медленно
         # перемещение
         if (self.direction_x or self.direction_y) and self.can_walk:
