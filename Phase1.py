@@ -10,7 +10,7 @@ class Phase:
         game.resize(1000, 1000)
 
         game.player = Player(game, 'player.png', 1216, 384, 32, 32, d_y=32, d_x = 16, scale=2)
-        # game.player.set_animation(6, 1, 32, 32, 0.5)
+        game.player.set_animation('walk_animation.png', 4, 1, 32, 32, 0.5)
         game.camera.change(obj=game.player, size=(400, 400))
 
         self.build()

@@ -48,19 +48,22 @@ class Player(pygame.sprite.Sprite):
             (0, 0, 0), "arial", 20
         )
 
-    def set_animation(self, col, row, width, height, fpt):
+    def set_animation(self, image, col, row, width, height, fpt):
         self.fpt = fpt  # Frame per ticks
         self.animated = True
         self.current_frame = 0
         self._ticks = 0
-        self.orig_image = []
-        image = self.game.load_image(self.texture)
+        self.orig_image = [self.orig_image]
+        image = self.game.load_image(image)
         for r in range(row):
             for c in range(col):
                 frame = image.subsurface(pygame.Rect(c * width, r * height, width, height))
                 self.orig_image.append(frame)
         self.frames = self.orig_image.copy()
         self.image = self.orig_image[0]
+
+    def on_floor(self):
+        return pygame.sprite.spritecollide(self, self.game.floor, False)
 
     def update(self):
         ticks = self.game.tick
@@ -69,7 +72,10 @@ class Player(pygame.sprite.Sprite):
             if self._ticks > 1 / self.fpt:
                 self._ticks %= 1 / self.fpt
                 if (self.direction_x or self.direction_y) and self.can_walk:
-                    self.current_frame = (self.current_frame + 1) % len(self.frames)
+                    if self.current_frame < len(self.frames) - 1:
+                        self.current_frame += 1
+                    else:
+                        self.current_frame = 1
                     self.image = self.frames[self.current_frame]
                 else:
                     self.image = self.frames[0]

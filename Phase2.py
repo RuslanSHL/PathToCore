@@ -1,5 +1,5 @@
 import pygame
-from build import Wall, Floor, Item, Door
+from build import Wall, Floor, Item, Door, Fone
 from player import Player
 from ui import FollowText, TaskText, Computer_2
 
@@ -57,6 +57,8 @@ class Phase2:
                 self._flag3 = True
 
     def update(self):
+        if not self.game.player.on_floor():
+            print('упал')
         if self._flag:
             if self._wait > 0:
                 self._wait -= 1
@@ -92,4 +94,6 @@ class Phase2:
                 'computer': Item(game, (0, 0, 255), 256, 576, 64, 64, True),
                 'door': Door(game, (255, 0, 0), 320, -32, 64, 32, True)
                 }
+
+        self.fone = Fone(game, -1000, -1000, 'fone.jpg', k=0.5)
         self.game.camera.update_size()

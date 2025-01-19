@@ -64,6 +64,29 @@ class Build(pygame.sprite.Sprite):
                     self.current_frame = (self.current_frame + 1) % len(self.frames)
                     self.image = self.frames[self.current_frame]
 
+class Fone(pygame.sprite.Sprite):
+    def __init__(self, game, x, y, texture, k=1):
+        super().__init__()
+        self.add(game.fone)
+        self.game = game
+        self.orig_image = game.load_image(texture)
+        self.image = self.orig_image
+        self.k = k
+
+        self.rect = pygame.Rect(x, y, *self.image.get_size())
+
+        self.x = x
+        self.y = y
+        self.draw_x = x
+        self.draw_y = y
+
+        print(self.draw_x, self.draw_y)
+
+    def update(self):
+        pass
+
+    def draw(self, screen):
+        screen.blit(self.image, (self.draw_x, self.draw_y))
 
 class Item(Build):
     def __init__(self, *args, radius=10):

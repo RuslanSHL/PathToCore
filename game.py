@@ -16,6 +16,7 @@ class Game:
         # Спрайты
         self.collibe_group = pygame.sprite.Group()
         # Объекты
+        self.fone = pygame.sprite.Group()
         self.floor = pygame.sprite.Group()
         self.wall = pygame.sprite.Group()
         self.item = pygame.sprite.Group()
@@ -79,6 +80,7 @@ class Game:
                         elif event.key in (pygame.K_DOWN, pygame.K_s):
                             self.player.direction_y = 0
 
+            self.fone.update()
             self.floor.update()
             self.wall.update()
             self.item.update()
@@ -92,6 +94,8 @@ class Game:
                 self.screen.fill((0, 0, 0))
                 self.game_surface.fill((0, 0, 0))
                 self.camera.update()
+                for i in self.fone:
+                    i.draw(self.game_surface)
                 for i in self.floor:
                     i.draw(self.game_surface)
                 for i in self.wall:
@@ -204,6 +208,9 @@ class Camera:
             d_x += c_x - self.obj.rect.centerx
             d_y += c_y - self.obj.rect.centery
 
+        for i in self.game.fone:
+            i.draw_x = int(c_x - (c_x - i.rect.x - d_x * i.k) * self.scale) - 1
+            i.draw_y = int(c_y - (c_y - i.rect.y - d_y * i.k) * self.scale) - 1
         for i in self.game.floor:
             i.draw_x = int(c_x - (c_x - i.rect.x + i.d_x_image - d_x) * self.scale) - 1
             i.draw_y = int(c_y - (c_y - i.rect.y + i.d_y_image - d_y) * self.scale) - 1
@@ -221,7 +228,7 @@ class Camera:
 if __name__ == "__main__":
     core = Game("PathToCore", 1000, 500)
     from Phase1 import Phase
-    # from Phase2 import Phase2
+    from Phase2 import Phase2
 
     core.set_phase(Phase(core))
     core.run()
