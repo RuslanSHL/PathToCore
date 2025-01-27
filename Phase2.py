@@ -9,17 +9,12 @@ class Phase2:
         self.game = game
         game.resize(1000, 1000)
 
-        game.player = Player(game, (0, 255, 0), 1216, 384, 32, 32)
-        # game.player.set_animation(6, 1, 32, 32, 0.5)
+        game.player = Player(game, 'player.png', 1216, 384, 32, 32, d_y=32, d_x = 16, scale=2)
+        game.player.set_animation('walk_animation.png', 4, 1, 32, 32, 0.08)
         game.camera.change(obj=game.player, size=(1000, 1000))
 
         game.player.rect.x = 336
         game.player.rect.y = 704
-        game.floor = pygame.sprite.Group()
-        game.wall = pygame.sprite.Group()
-        game.item = pygame.sprite.Group()
-        game.collibe_group = pygame.sprite.Group()
-        game.ui = []
 
         self.build()
 
@@ -48,8 +43,12 @@ class Phase2:
     def story_event_handling(self, item):
         if item == self.items['level_1']:
             self._flag1 = True
+            self.items['level_1'].change_texture('switch_on.png')
+            self.game.camera.update_size()
         if item == self.items['level_2']:
             self._flag2 = True
+            self.items['level_2'].change_texture('switch_on.png')
+            self.game.camera.update_size()
         elif item == self.items['computer']:
             if self._flag1 and self._flag2:
                 self.computer = Computer_2(self.game, 10, 10, self.game.width - 20, self.game.height - 20)
@@ -58,7 +57,9 @@ class Phase2:
 
     def update(self):
         if not self.game.player.on_floor():
-            print('упал')
+            self.game.set_phase(Phase2)
+        if self.game.player.rect.y < -32 and 320 < self.game.player.rect.x < 384:
+            print('Пройдено')
         if self._flag:
             if self._wait > 0:
                 self._wait -= 1
@@ -68,7 +69,7 @@ class Phase2:
         elif self._flag3:
             if self.computer.is_completed:
                 self.game.ui.remove(self.computer)
-                self.bridge = Floor(self.game, (10, 10, 10), 320, 128, 64, 384, False)
+                self.bridge = Floor(self.game, 'floor3.png', 320, 128, 64, 384, False)
                 self.game.camera.update_size()
                 self._flag = True
                 self._wait = 3000
@@ -82,18 +83,19 @@ class Phase2:
     def build(self):
         game = self.game
         self.floor = [
-                Floor(game, (0, 0, 0), 64, 0, 576, 64, False),
-                Floor(game, (0, 0, 0), 128, 576, 448, 192, False),
-                Floor(game, (0, 0, 0), 320, 64, 64, 64, False),
-                Floor(game, (0, 0, 0), 320, 512, 64, 64, False),
+                Floor(game, 'floor2.png', 64, 0, 576, 64, False),
+                Floor(game, 'floor1.png', 128, 576, 448, 192, False),
+                Floor(game, 'floor2.1.png', 320, 64, 64, 64, False),
+                Floor(game, 'floor1.1.png', 320, 512, 64, 64, False),
                 ]
 
         self.items = {
-                'level_1': Item(game, (0, 0, 255), 128, 640, 64, 64, True),
-                'level_2': Item(game, (0, 0, 255), 512, 640, 64, 64, True),
-                'computer': Item(game, (0, 0, 255), 256, 576, 64, 64, True),
-                'door': Door(game, (255, 0, 0), 320, -32, 64, 32, True)
+                'level_1': Item(game, 'switch_off.png', 128, 576, 64, 64, True),
+                'level_2': Item(game, 'switch_off.png', 512, 576, 64, 64, True),
+                'computer': Item(game, 'computer.png', 256, 576, 64, 64, True),
+                'door': Door(game, 'door.png' , 320, -32, 64, 32, True, horizontal=True)
                 }
 
-        self.fone = Fone(game, -1000, -1000, 'fone.jpg', k=0.5)
+        self.fone2 = Fone(game, -1000, -1000, 'fone2.png', k=0.2, scale=10)
+        self.fone1 = Fone(game, -1000, -1000, 'fone1.png', k=0.5, scale=10)
         self.game.camera.update_size()

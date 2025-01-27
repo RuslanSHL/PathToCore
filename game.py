@@ -13,6 +13,7 @@ class Game:
         self.game_surface = pygame.Surface((width, height))
         # Камера
         self.camera = Camera(self, coords=(0, 0))
+        self.camera_update_size = False
         # Спрайты
         self.collibe_group = pygame.sprite.Group()
         # Объекты
@@ -31,6 +32,23 @@ class Game:
     def resize(self, width, height):
         self.game_width, self.game_height = width, height
         self.game_surface = pygame.Surface((width, height))
+
+    def main_menu(self, menu):
+        running = True
+        self.start_game = False
+        menu = menu(self)
+        while running:
+            if self.start_game:
+                running = False
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    menu.click_handling(event)
+            self.screen.fill((0, 0, 0))
+            menu.draw(self.screen)
+            pygame.display.flip()
+
 
     def run(self):
         """Главный цикл"""
@@ -111,7 +129,13 @@ class Game:
         self.quit()
 
     def set_phase(self, phase):
-        self.phase = phase
+        self.fone = pygame.sprite.Group()
+        self.floor = pygame.sprite.Group()
+        self.wall = pygame.sprite.Group()
+        self.item = pygame.sprite.Group()
+        self.life = pygame.sprite.Group()
+        self.ui = []
+        self.phase = phase(self)
 
     def load_image(self, name, colorkey=None):
         fullname = os.path.join("data", name)
@@ -175,6 +199,10 @@ class Camera:
                     )
                 )
             obj.frames = frames
+            obj.image = pygame.transform.scale(
+                obj.image,
+                (int(obj.image_width * self.scale) + 1, int(obj.image_height * self.scale) + 1)
+            )
         else:
             obj.image = pygame.transform.scale(
                 obj.orig_image,
@@ -229,6 +257,9 @@ if __name__ == "__main__":
     core = Game("PathToCore", 1000, 500)
     from Phase1 import Phase
     from Phase2 import Phase2
+    from ui import MainMenu
 
-    core.set_phase(Phase(core))
-    core.run()
+    core.set_phase(Phase2)
+    core.main_menu(MainMenu)
+    if core.start_game:
+        core.run()

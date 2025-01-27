@@ -27,6 +27,22 @@ class Build(pygame.sprite.Sprite):
         self.draw_x = x + d_x
         self.draw_y = y + d_y
 
+    def change_texture(self, texture, scale=1, d_x=0, d_y=0):
+        print(texture)
+        if type(texture) is str:
+            orig_image = self.game.load_image(texture)
+            w, h = orig_image.get_size()
+            self.orig_image = pygame.transform.scale(orig_image, (w * scale, h * scale))
+        else:
+            self.orig_image = pygame.Surface((self.width, self.height))
+            self.orig_image.fill(texture)
+        self.image = self.orig_image
+        self.image_width, self.image_height = self.orig_image.get_size()
+        self.d_x_image = d_x
+        self.d_y_image = d_y
+        self.draw_x = self.rect.x + d_x
+        self.draw_y = self.rect.y + d_y
+
     def draw(self, surface):
         surface.blit(self.image, (self.draw_x, self.draw_y))
 
@@ -65,11 +81,14 @@ class Build(pygame.sprite.Sprite):
                     self.image = self.frames[self.current_frame]
 
 class Fone(pygame.sprite.Sprite):
-    def __init__(self, game, x, y, texture, k=1):
+    def __init__(self, game, x, y, texture, k=1, scale=1):
         super().__init__()
         self.add(game.fone)
         self.game = game
         self.orig_image = game.load_image(texture)
+        if scale != 1:
+            w, h = self.orig_image.get_size()
+            self.orig_image = pygame.transform.scale(self.orig_image, (w * scale, h * scale))
         self.image = self.orig_image
         self.k = k
 
@@ -89,8 +108,8 @@ class Fone(pygame.sprite.Sprite):
         screen.blit(self.image, (self.draw_x, self.draw_y))
 
 class Item(Build):
-    def __init__(self, *args, radius=10):
-        super().__init__(*args)
+    def __init__(self, *args, radius=10, **kwargs):
+        super().__init__(*args, **kwargs)
         self.add(self.game.item)
         self.interact_rect = pygame.Rect(
             self.rect.x - radius,

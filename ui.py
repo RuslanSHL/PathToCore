@@ -1,6 +1,45 @@
 import pygame
 
 
+class MainMenu:
+    class Button:
+        def __init__(self, text, width, height, x, y, font='arial', size=12, color=(0, 0, 0),
+                     fone_color=(255, 0, 0), command=None):
+            self.font = pygame.font.SysFont(font, size)
+            s = self.font.render(text, False, color)
+            self.surface = pygame.Surface((width, height))
+            self.surface.fill(fone_color)
+            self.surface.blit(s, (5, 5))
+            self.x = x
+            self.y = y
+            self.rect = pygame.Rect(x, y, width, height)
+            self.command = command
+
+        def click(self):
+            if self.command is not None:
+                self.command()
+
+        def draw(self, screen):
+            screen.blit(self.surface, (self.x, self.y))
+
+    def __init__(self, game):
+        self.game = game
+        self.ui = []
+        self.button = MainMenu.Button('Начать игру', 100, 50, self.game.width // 2 - 50, self.game.height // 2 - 25, command=self.start_game)
+        self.ui.append(self.button)
+
+    def start_game(self):
+        self.game.start_game = True
+
+    def click_handling(self, event):
+        for i in self.ui:
+            if i.rect.collidepoint(event.pos):
+                i.click()
+
+    def draw(self, screen):
+        self.button.draw(screen)
+
+
 class FollowText:
     """Тект следующий за сущностью"""
     def __init__(self, game, obj, text, color, font, size):
@@ -13,6 +52,7 @@ class FollowText:
         self.color = color
 
     def draw(self, screen):
+        # TODO: вынести render в init для оптимизации
         x = self.obj.draw_x
         y = self.obj.draw_y
         lines = self.text.split("\n")
@@ -176,7 +216,7 @@ class Computer_2:
         self.game = game
         self.text = '106-439-761-'
         self.answer = ''
-        self.right_answer = '095'
+        self.right_answer = '094'
         self.x = x
         self.y = y
         self.width = width
