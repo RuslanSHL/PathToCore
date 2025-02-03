@@ -1,5 +1,5 @@
 import pygame
-from ui import FollowText
+from ui import FollowText, SpeechText
 
 
 class Player(pygame.sprite.Sprite):
@@ -35,7 +35,6 @@ class Player(pygame.sprite.Sprite):
         self.image = self.orig_image
 
         self.image_width, self.image_height = self.orig_image.get_size()
-        print(self.image_width, self.image_height)
         self.d_x_image = d_x
         self.d_y_image = d_y
         self.draw_x = x + d_x
@@ -47,6 +46,10 @@ class Player(pygame.sprite.Sprite):
             "press e to interact",
             (0, 0, 0), "arial", 20
         )
+
+        self.speech = []
+        self.speech_timer = 0
+        self.speech_label = False
 
     def set_animation(self, image, col, row, width, height, fpt):
         self.fpt = fpt  # Frame per ticks
@@ -147,6 +150,18 @@ class Player(pygame.sprite.Sprite):
                 self.interact = None
                 if self.text in self.game.ui:
                     self.game.ui.remove(self.text)
+
+        # речь
+        if self.speech_timer and self.speech_label:
+            self.speech_timer -= 1
+        else:
+            if self.speech_label:
+                self.game.ui.remove(self.speech_label)
+                self.speech_label = None
+            if self.speech:
+                self.speech_label = SpeechText(self.game, self, self.speech.pop(0), (255, 255, 255), "arial", 24)
+                self.game.ui.append(self.speech_label)
+                self.speech_timer = 600
 
     def draw(self, surface):
         surface.blit(self.image, (self.draw_x, self.draw_y))

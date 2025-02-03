@@ -1,5 +1,6 @@
 import pygame
 import os
+from time import time as now_time
 
 
 class Game:
@@ -28,10 +29,29 @@ class Game:
         self.fps = 1000
         self.tps = 60
         self.ticks = 0
+        self.start_time = None
 
     def resize(self, width, height):
         self.game_width, self.game_height = width, height
         self.game_surface = pygame.Surface((width, height))
+
+    def end_menu(self, menu):
+        running = True
+        self.to_menu = False
+        menu = menu(self)
+        while running:
+            if self.to_menu:
+                running = False
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    self.quit()
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    menu.click_handling(event)
+            self.screen.fill((0, 0, 0))
+            menu.draw(self.screen)
+            pygame.display.flip()
+        self.restart()
 
     def main_menu(self, menu):
         running = True
@@ -43,6 +63,7 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                    self.quit()
                 elif event.type == pygame.MOUSEBUTTONUP:
                     menu.click_handling(event)
             self.screen.fill((0, 0, 0))
@@ -52,6 +73,7 @@ class Game:
 
     def run(self):
         """Главный цикл"""
+        self.start_time = now_time()
         self.running = True
         _time_fps = 0
         while self.running:
@@ -134,6 +156,7 @@ class Game:
         self.wall = pygame.sprite.Group()
         self.item = pygame.sprite.Group()
         self.life = pygame.sprite.Group()
+        self.collibe_group = pygame.sprite.Group()
         self.ui = []
         self.phase = phase(self)
 
@@ -151,6 +174,48 @@ class Game:
         else:
             image = image.convert_alpha()
         return image
+
+    def load_best_result(self, time: float):
+        try:
+            with open('result.txt', 'r') as file:
+                result = file.read()
+                print('result:', result)
+                if result:
+                    last_result = float(result)
+                    if last_result > time:
+                        with open('result.txt', 'w') as file:
+                            file.write(str(time))
+                        print(time)
+                        print('best_time')
+                else:
+                    with open('result.txt', 'w') as file:
+                        file.write(str(time))
+                    print(time)
+                    print('no have last result')
+        except Exception as e:
+            from icecream import ic
+            ic(e)
+            return None
+
+    def get_best_result(self):
+        try:
+            with open('result.txt') as file:
+                return float(file.read())
+        except Exception as e:
+            return None
+
+    def restart(self):
+        from Phase1 import Phase
+        from ui import MainMenu
+        self.set_phase(Phase)
+        self.main_menu(MainMenu)
+        if self.start_game:
+            self.run()
+
+    def end_game(self):
+        from ui import EndMenu
+        self.load_best_result(now_time() - self.start_time)
+        self.end_menu(EndMenu)
 
     def quit(self):
         """Выход"""
@@ -259,7 +324,7 @@ if __name__ == "__main__":
     from Phase2 import Phase2
     from ui import MainMenu
 
-    core.set_phase(Phase2)
+    core.set_phase(Phase)
     core.main_menu(MainMenu)
     if core.start_game:
         core.run()

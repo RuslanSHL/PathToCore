@@ -1,7 +1,8 @@
 import pygame
 from build import Wall, Floor, Item, Door
 from player import Player
-from ui import FollowText, TaskText, Computer_1
+from ui import FollowText, TaskText, Computer_1, ChatComputer
+from Phase2 import Phase2
 
 
 class Phase:
@@ -16,7 +17,7 @@ class Phase:
         self.build()
 
         self._count = 1
-        self._task = 0
+        self._task = -1
         self._flag = False
         self._wait = 0
         self._c_step = 0
@@ -24,9 +25,10 @@ class Phase:
         self.task_text = TaskText(game, 0, 0, 'Проживайте обычные деньки', 'Умойтесь', (0, 0, 0), (100, 100, 100), (100, 100, 100, 200), 'arial', 20)
         game.ui.append(self.task_text)
 
+
     def event_handling(self, event):
         if event.type == pygame.KEYDOWN:
-            if self._task == 6 and self._flag and self._count < 10:
+            if self._task == 6 and self._flag:
                 self.computer.handler_key(event.key)
                 return False
             else:
@@ -86,33 +88,33 @@ class Phase:
                     self.game.player.can_walk = False
         else:
             if item == self.furniture['sofa']:
-                print('Сколько себя помню, я никогда на нём не сидел')
-                print('Сколько себя помню...')
+                self.game.player.speech.append('Сколько себя помню, я никогда на нём не сидел')
+                self.game.player.speech.append('Сколько себя помню...')
             elif item == self.furniture['tv']:
-                print('Когда в последний раз его включал')
+                self.game.player.speech.append('Когда в последний раз его включал')
             if self._task == 0:
                 if item == self.furniture['sink']:
                     self.game.player.can_walk = False
                     self._wait = 180
                     self._flag = True
                 elif item == self.furniture['bath']:
-                    print('Впринципе можно и тут')
+                    self.game.player.speech.append('Впринципе можно и тут')
                     self.game.player.can_walk = False
                     self._wait = 180
                     self._flag = True
                 else:
                     phrases = {self.furniture['bed']: 'Не хочу спать'}
                     text = phrases.get(item, 'Нужно сначало умыться')
-                    print(text)
+                    self.game.player.speech.append(text)
             elif self._task == 1:
                 if item == self.furniture['kitchen']:
-                    print('Почему я готовлю постоянно одно и тоже?')
+                    self.game.player.speech.append('Почему я готовлю постоянно одно и тоже?')
                     self.game.player.can_walk = False
                     self._wait = 300
                     self._flag = True
                 else:
                     text = 'Для начала позавтракаю'
-                    print(text)
+                    self.game.player.speech.append(text)
             elif self._task == 2:
                 if item == self.furniture['table']:
                     self._task = 3
@@ -124,9 +126,9 @@ class Phase:
                     self._wait = 300
                     self.game.player.can_walk = False
                     # TODO: игрока делаем невидимым, а у стула меняем текстуру
-                    print('Почему я только завтракаю?')
+                    self.game.player.speech.append('Почему я только завтракаю?')
                 else:
-                    print('У меня остывает завтрак')
+                    self.game.player.speech.append('У меня остывает завтрак')
             elif self._task == 5:
                 if item == self.furniture['kitchen']:
                     self._flag = True
@@ -134,7 +136,10 @@ class Phase:
                     self.game.player.can_walk = False
             elif self._task == 6:
                 if item == self.furniture['armchair']:
-                    print('За этим столом я провожу большую часть времени')
+                    self.game.player.speech.append('За этим столом я провожу большую часть времени')
+                    self.computer = ChatComputer(self.game, 10, 10, self.game.width - 20, self.game.height - 20)
+                    self.game.ui.append(self.computer)
+                    self.game.camera.update_size()
                     self._scale_count = 0
                     self._flag = True
                     self._wait = 300
@@ -142,9 +147,13 @@ class Phase:
                 else:
                     phrases = {self.furniture['bed']: 'За работу *лёг спать*'}
                     text = phrases.get(item, 'Мне нужно работать... Зачем?')
-                    print(text)
+                    self.game.player.speech.append(text)
 
     def update(self):
+        if self._count == 1 and self._task == -1:
+            self._task = 0
+            pygame.mixer.music.load('data/signal.wav')
+            pygame.mixer.music.play()
         if self._wait > 0:
             self._wait -= self.game.tick
         else:
@@ -179,20 +188,21 @@ class Phase:
                     self.create_task_text('Проживайте обычные деньки', 'Сядьте за компьютер')
                 else:
                     self.create_task_text('Проживайте обычные деньки?', 'Сядьте за компьютер')
-                print('Опять работать...')
+                    self.game.player.speech.append('Опять работать...')
                 self._flag = False
             elif self._task == 6 and self._flag:
                 if self._count >= 10:
-                    if self._scale_count < 1000:
-                        self._scale_count += 1
-                        self.game.camera.scale -= 0.0001
-                        self.game.camera.update_size()
-                    else:
-                        self.create_task_text('Покиньте версию', 'Откройте дверь')
-                        self.doors[1].closed = False
-                        self._flag = False
-                        self.game.player.can_walk = True
-                        self._task = 11
+                    if self.computer.finished:
+                        if self._scale_count < 1000:
+                            self._scale_count += 1
+                            self.game.camera.scale -= 0.0001
+                            self.game.camera.update_size()
+                        else:
+                            self.create_task_text('Покиньте версию', 'Откройте дверь')
+                            self.doors[1].closed = False
+                            self._flag = False
+                            self.game.player.can_walk = True
+                            self._task = 11
                 else:
                     if not self.computer.steps:
                         self._task = 7
@@ -206,6 +216,8 @@ class Phase:
                 self._flag = False
                 self.create_task_text('Проживайте обычные деньки', 'Ложитесь спать')
             elif self._task == 8 and self._flag:
+                pygame.mixer.music.load('data/signal.wav')
+                pygame.mixer.music.play()
                 self._count += 1
                 self._flag = False
                 if self._count < 10:
@@ -216,7 +228,8 @@ class Phase:
                 self.game.player.can_walk = True
             elif self._task == 11:
                 if self.game.player.rect.bottom < 0:
-                    self.game.set_phase(Phase2(self.game))
+                    self.game.set_phase(Phase2)
+                    #FIXME: перемешались версии, стены во втором уровне
 
     def create_task_text(self, title, subtitle, title_color=(0, 0, 0), subtitle_color=(100, 100, 100)):
         self.game.ui.remove(self.task_text)

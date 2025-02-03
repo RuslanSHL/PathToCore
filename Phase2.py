@@ -2,6 +2,7 @@ import pygame
 from build import Wall, Floor, Item, Door, Fone
 from player import Player
 from ui import FollowText, TaskText, Computer_2
+from time import time
 
 
 class Phase2:
@@ -18,8 +19,8 @@ class Phase2:
 
         self.build()
 
-        self._count = 10
-        self._task = 5
+        self._count = 1
+        self._task = 1
         self._flag = False
         self._flag1 = False
         self._flag2 = False
@@ -54,12 +55,14 @@ class Phase2:
                 self.computer = Computer_2(self.game, 10, 10, self.game.width - 20, self.game.height - 20)
                 self.game.ui.append(self.computer)
                 self._flag3 = True
+                self._flag1 = False
 
     def update(self):
+        if self.game.player.rect.y <= -32 and 320 < self.game.player.rect.x < 384:
+            self.game.end_game()
+
         if not self.game.player.on_floor():
             self.game.set_phase(Phase2)
-        if self.game.player.rect.y < -32 and 320 < self.game.player.rect.x < 384:
-            print('Пройдено')
         if self._flag:
             if self._wait > 0:
                 self._wait -= 1
